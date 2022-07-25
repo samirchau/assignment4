@@ -3,11 +3,11 @@
  *  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part *  of this assignment has been copied manually or electronically from any other source
  *  (including 3rd party web sites) or distributed to other students.
  *
- *  Name: Samir Chaulagain Student ID: 109946160 Date: 11 July 2022
+ *  Name: Samir Chaulagain Student ID: 109946160 Date: 22 July 2022
  *
- *  Online (Heroku) URL: https://frozen-stream-23510.herokuapp.com/ 
+ *  Online (Heroku) URL:  
  *
- *  GitHub Repository URL: https://github.com/samirchau/assignment4
+ *  GitHub Repository URL: 
  */
 
 var express = require("express");
@@ -20,8 +20,6 @@ const exphbs = require("express-handlebars");
 
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
-const posts = require("./data/posts.json");
-const categories = require("./data/categories.json");
 const { rmSync } = require("fs");
 const stripJs = require("strip-js");
 
@@ -61,6 +59,12 @@ app.engine(
       },
       safeHTML: function (context) {
         return stripJs(context);
+      },
+      formatDate: function (dateObj) {
+        let year = dateObj.getFullYear();
+        let month = (dateObj.getMonth() + 1).toString();
+        let day = dateObj.getDate().toString();
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
       },
     },
   })
@@ -308,6 +312,36 @@ app.post("/posts/add", upload.single("featureImage"), (req, res) => {
         res.status(500).send(err);
       });
   }
+});
+
+app.get("/categories/add", (req, res) => {
+  res.render(path.join(__dirname, "/views/addCategory.hbs"));
+});
+
+app.post("/categories/add", (req, res) => {
+  blogservice.addCategory(req.body).then(() => {
+    res.redirect("/categories");
+  })
+});
+
+app.get("/categories/delete/:id", (req, res) => {
+  blogservice.deleteCategoryById(req.params.id)
+    .then(() => {
+      res.redirect("/categories");
+    }).catch(err => {
+      res.status(500).send("Unable to Remove Category / Category not found");
+      console.log(err);
+    });
+});
+
+app.get("/posts/delete/:id", (req, res) => {
+  blogservice.deletePostById(req.params.id)
+    .then(() => {
+      res.redirect("/posts");
+    }).catch(err => {
+      res.status(500).send("Unable to Remove Post / Post not found");
+      console.log(err);
+    });
 });
 
 blogservice
